@@ -11,22 +11,23 @@
             box-sizing: border-box;
         }
         body {
-           font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #fdfdfd;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: white;
             padding: 0px;
             min-height: 100vh;
         }
         .container {
-            min-hwight: 100vh;
+            min-height: 100vh;
             margin: 0 auto;
             background: white;
+            border-radius: 0;
             overflow: hidden;
         }
         .header {
-            background: linear-gradient(185deg, #FFD700 30%, #B8860B 100%); 
-            color: black;
+            background: linear-gradient(185deg,rgba(185, 232, 16, 1) 30%, rgba(9, 108, 121, 1) 100%);
+            color: white;
             padding: 30px;
-            text-align: center
+            text-align: center;
         }
         .header h1 {
             font-size: 28px;
@@ -66,17 +67,17 @@
         }
         .section-title {
             font-size: 20px;
-            color: #B8860B; /* kuning tua */
+            color: #08c446;
             margin-bottom: 15px;
             padding-bottom: 10px;
-            border-bottom: 2px solid #FFD700;
+            border-bottom: 2px solid #08c446;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
         .btn {
-            background: #13f283; 
-            color: black;
+            background: #15F375;
+            color: white;
             border: none;
             padding: 10px 20px;
             border-radius: 8px;
@@ -85,7 +86,7 @@
             transition: all 0.3s;
         }
         .btn:hover {
-            background: #B8860B;
+            background: A6A624;
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
@@ -127,11 +128,13 @@
         }
         table {
             width: 100%;
+            display: block;
             border-collapse: collapse;
             margin-top: 15px;
             background: white;
             border-radius: 8px;
             overflow: hidden;
+            overflow-x: auto;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         thead {
@@ -158,7 +161,7 @@
             background: #f8f9ff;
         }
         .delete-btn {
-            background: red;
+            background: #ff4757;
             color: white;
             border: none;
             padding: 6px 12px;
@@ -176,15 +179,14 @@
             margin-top: 20px;
         }
         .summary-card {
-            background: linear-gradient(185deg, #FFD700 30%, #B8860B 100%);
+            background: linear-gradient(185deg,rgba(185, 232, 16, 1) 30%, rgba(9, 108, 121, 1) 100%);
             color: white;
             padding: 25px;
             border-radius: 12px;
-            box-shadow: 0 5px 20px rgba(184, 134, 11, 0.3);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
         }
         .summary-card.material {
-            background-color: #A9A9A9;
-            color: white;
+            background-color: #575707;
         }
         .summary-card h3 {
             font-size: 16px;
@@ -210,7 +212,29 @@
         .empty-state p {
             font-size: 16px;
         }
+        @media (max-width: 480px){
+            .input-group{
+                grid-template-columns: 1fr !important;
+            }
+            .header h1 {
+                font-size: 20px;
+            }
+            .header p {
+                font-size: 12px;
+            }
+            td, th {
+                font-size: 12px;
+                padding: 8px;
+            }
+            .summary-card{
+                padding: 15px !important;
+            }
+            .summary-card .number{
+                font-size: 26px;
+            }
+        }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
     <div class="save-indicator" id="saveIndicator">✅ Data tersimpan otomatis</div>
@@ -218,7 +242,7 @@
     <div class="container">
         <div class="header">
             <h1>Data Entry Truck - RIT Harian</h1>
-            <p>Input data dan summary otomatis Per INDEX dan MATERIAL </p>
+            <p>Input data dan lihat summary otomatis per INDEX dan MATERIAL </p>
         </div>
         
         <div class="content">
@@ -262,6 +286,8 @@
                     </div>
                 </div>
                 <button class="btn" onclick="addData()">➕ Tambah Data</button>
+                <button class="btn" onclick="exportToXLSX()"> Export ke EXCEL</button>
+
             </div>
 
             <!-- Data Table -->
@@ -295,7 +321,7 @@
         let dataEntries = [];
         const STORAGE_KEY = 'truckDataEntries';
 
-        // Load data dari localStorage saat halaman dimuat
+        // Load data dari localStorage pas halaman dimuat
         function loadData() {
             const savedData = localStorage.getItem(STORAGE_KEY);
             if (savedData) {
@@ -309,7 +335,7 @@
             }
         }
 
-        // Simpan data ke localStorage
+       
         function saveData() {
             try {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(dataEntries));
@@ -321,7 +347,6 @@
             }
         }
 
-        // Tampilkan indikator penyimpanan
         function showSaveIndicator() {
             const indicator = document.getElementById('saveIndicator');
             indicator.style.display = 'block';
@@ -330,7 +355,6 @@
             }, 2000);
         }
 
-        // Set default date to today
         document.getElementById('tanggal').valueAsDate = new Date();
 
         function addData() {
@@ -353,10 +377,8 @@
                 index: parseInt(index)
             });
 
-            // Simpan ke localStorage
             saveData();
 
-            // Clear form
             document.getElementById('jam').value = '';
             document.getElementById('nopol').value = '';
             document.getElementById('material').value = '';
@@ -421,7 +443,6 @@
                 return;
             }
 
-            // Group by index and material
             const summary = {};
             
             dataEntries.forEach(entry => {
@@ -434,7 +455,6 @@
                 summary[entry.index][entry.material]++;
             });
 
-            // Sort index
             const sortedIndexes = Object.keys(summary).sort((a, b) => a - b);
 
             let html = '<div class="summary-grid">';
@@ -456,7 +476,6 @@
                 html += `</tbody></table></div>`;
             });
 
-            // Total keseluruhan
             const grandTotal = dataEntries.length;
             html += `<div class="summary-card">
                 <h3>TOTAL KESELURUHAN</h3>
@@ -476,7 +495,6 @@
                 return;
             }
 
-            // Group by material and index
             const materialSummary = {};
             
             dataEntries.forEach(entry => {
@@ -489,7 +507,6 @@
                 materialSummary[entry.material][entry.index]++;
             });
 
-            // Sort by material name
             const sortedMaterials = Object.keys(materialSummary).sort();
 
             let html = '<div class="summary-grid">';
@@ -497,8 +514,7 @@
             sortedMaterials.forEach(material => {
                 const indexes = materialSummary[material];
                 const totalRit = Object.values(indexes).reduce((a, b) => a + b, 0);
-                
-                // Get index list
+
                 const indexList = Object.keys(indexes).sort((a, b) => a - b).join(', ');
                 
                 html += `<div class="summary-card material">
@@ -508,7 +524,6 @@
                     <table class="detail-table">
                         <tbody>`;
                 
-                // Sort indexes numerically
                 Object.keys(indexes).sort((a, b) => a - b).forEach(index => {
                     const count = indexes[index];
                     html += `<tr><td><strong>Index ${index}</strong></td><td style="text-align: right;">${count} rit</td></tr>`;
@@ -521,20 +536,82 @@
             container.innerHTML = html;
         }
 
-        // Load data saat halaman pertama kali dibuka
         loadData();
         
-        // Initial display
         updateDisplay();
+        function exportToXLSX() {
+    if (dataEntries.length === 0) {
+        alert("❌ Tidak ada data untuk di-export!");
+        return;
+    }
+
+    const wb = XLSX.utils.book_new();
+
+
+    const ritSheetData = [
+        ["No", "Tanggal", "Jam", "Nopol", "Material", "Index"]
+    ];
+
+    dataEntries.forEach((d, i) => {
+        ritSheetData.push([
+            i + 1,
+            d.tanggal,
+            d.jam,
+            d.nopol,
+            d.material,
+            d.index
+        ]);
+    });
+
+    const ritSheet = XLSX.utils.aoa_to_sheet(ritSheetData);
+    XLSX.utils.book_append_sheet(wb, ritSheet, "RIT DATA");
+
+    const summaryIndex = {};
+
+    dataEntries.forEach(e => {
+        if (!summaryIndex[e.index]) summaryIndex[e.index] = {};
+        if (!summaryIndex[e.index][e.material]) summaryIndex[e.index][e.material] = 0;
+        summaryIndex[e.index][e.material]++;
+    });
+
+    const summaryIndexSheet = [["Index", "Material", "Jumlah RIT"]];
+
+    Object.keys(summaryIndex).sort((a, b) => a - b).forEach(index => {
+        Object.entries(summaryIndex[index]).forEach(([material, count]) => {
+            summaryIndexSheet.push([index, material, count]);
+        });
+    });
+
+    const sheetIndex = XLSX.utils.aoa_to_sheet(summaryIndexSheet);
+    XLSX.utils.book_append_sheet(wb, sheetIndex, "SUMMARY INDEX");
+
+    const summaryMaterial = {};
+
+    dataEntries.forEach(e => {
+        if (!summaryMaterial[e.material]) summaryMaterial[e.material] = {};
+        if (!summaryMaterial[e.material][e.index]) summaryMaterial[e.material][e.index] = 0;
+        summaryMaterial[e.material][e.index]++;
+    });
+
+    const summaryMaterialSheet = [["Material", "Index", "Jumlah RIT"]];
+
+    Object.keys(summaryMaterial).sort().forEach(material => {
+        Object.entries(summaryMaterial[material]).forEach(([index, count]) => {
+            summaryMaterialSheet.push([material, index, count]);
+        });
+    });
+
+    const sheetMaterial = XLSX.utils.aoa_to_sheet(summaryMaterialSheet);
+    XLSX.utils.book_append_sheet(wb, sheetMaterial, "SUMMARY MATERIAL");
+
+    // =====================
+    // WRITE FILE
+    // =====================
+    XLSX.writeFile(wb, "DATA_RIT.xlsx");
+}
+
     </script>
 </body>
 
 </html>
-
-
-
-
-
-
-
 
