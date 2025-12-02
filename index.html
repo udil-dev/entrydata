@@ -235,6 +235,7 @@
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 </head>
 <body>
     <div class="save-indicator" id="saveIndicator">✅ Data tersimpan otomatis</div>
@@ -538,7 +539,6 @@
 
         loadData();
         
-        updateDisplay();
         function exportToXLSX() {
     if (dataEntries.length === 0) {
         alert("❌ Tidak ada data untuk di-export!");
@@ -547,15 +547,25 @@
 
     const wb = XLSX.utils.book_new();
 
-
+    // 1) RIT DATA — ubah tanggal jadi Date object
     const ritSheetData = [
         ["No", "Tanggal", "Jam", "Nopol", "Material", "Index"]
     ];
 
     dataEntries.forEach((d, i) => {
+        // Convert tanggal string "YYYY-MM-DD" jadi Date object
+        // Jika d.tanggal kosong atau invalid, fallback ke string asal
+        let tval = d.tanggal;
+        let dateObj = null;
+        if (tval) {
+            // new Date(tval) menghasilkan UTC midnight — ini cukup untuk Excel
+            const tmp = new Date(tval);
+            if (!isNaN(tmp)) dateObj = tmp;
+        }
+
         ritSheetData.push([
             i + 1,
-            d.tanggal,
+            dateObj !== null ? dateObj : tval,
             d.jam,
             d.nopol,
             d.material,
@@ -563,11 +573,12 @@
         ]);
     });
 
-    const ritSheet = XLSX.utils.aoa_to_sheet(ritSheetData);
+    // Buat sheet dari array-of-arrays; beri opsi cellDates agar XLSX traktir Date object
+    const ritSheet = XLSX.utils.aoa_to_sheet(ritSheetData, {cellDates: true});
     XLSX.utils.book_append_sheet(wb, ritSheet, "RIT DATA");
 
+    // 2) SUMMARY INDEX
     const summaryIndex = {};
-
     dataEntries.forEach(e => {
         if (!summaryIndex[e.index]) summaryIndex[e.index] = {};
         if (!summaryIndex[e.index][e.material]) summaryIndex[e.index][e.material] = 0;
@@ -575,18 +586,16 @@
     });
 
     const summaryIndexSheet = [["Index", "Material", "Jumlah RIT"]];
-
     Object.keys(summaryIndex).sort((a, b) => a - b).forEach(index => {
         Object.entries(summaryIndex[index]).forEach(([material, count]) => {
             summaryIndexSheet.push([index, material, count]);
         });
     });
-
     const sheetIndex = XLSX.utils.aoa_to_sheet(summaryIndexSheet);
     XLSX.utils.book_append_sheet(wb, sheetIndex, "SUMMARY INDEX");
 
+    // 3) SUMMARY MATERIAL
     const summaryMaterial = {};
-
     dataEntries.forEach(e => {
         if (!summaryMaterial[e.material]) summaryMaterial[e.material] = {};
         if (!summaryMaterial[e.material][e.index]) summaryMaterial[e.material][e.index] = 0;
@@ -594,21 +603,23 @@
     });
 
     const summaryMaterialSheet = [["Material", "Index", "Jumlah RIT"]];
-
     Object.keys(summaryMaterial).sort().forEach(material => {
         Object.entries(summaryMaterial[material]).forEach(([index, count]) => {
             summaryMaterialSheet.push([material, index, count]);
         });
     });
-
     const sheetMaterial = XLSX.utils.aoa_to_sheet(summaryMaterialSheet);
     XLSX.utils.book_append_sheet(wb, sheetMaterial, "SUMMARY MATERIAL");
 
-    // =====================
-    // WRITE FILE
-    // =====================
-    XLSX.writeFile(wb, "DATA_RIT.xlsx");
+    // === WRITE + SAVE using Blob + FileSaver (menghindari .bin pada WebView) ===
+    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([wbout], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    });
+    saveAs(blob, "DATA_RIT.xlsx");
 }
+
+    
 
     </script>
 </body>
