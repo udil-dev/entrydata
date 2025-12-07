@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Entry Truck</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: white;
+            padding: 0px;
+            min-height: 100vh;
+        }
+        .container {
+            min-height: 100vh;
+            margin: 0 auto;
+            background: white;
+            border-radius: 0;
+            overflow: hidden;
+            overflow-x: auto;
+        }
+        .header {
+            background: linear-gradient(185deg,rgba(185, 232, 16, 1) 30%, rgba(9, 108, 121, 1) 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        .save-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateX(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        .content {
+            padding: 30px;
+        }
+        .section {
+            margin-bottom: 40px;
+            width: 100%;
+        }
+        .table-wrap{
+            width: 100%;
+            overflow-x: auto;
+        }
+        .section-title {
+            font-size: 20px;
+            color: #08c446;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #08c446;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .btn {
+            background: #15F375;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            margin-left: 10px;
+            margin-right: 10px;
+        }
+        .btn:hover {
+            background: A6A624;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .btn-small {
+            background-color: red;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .input-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .input-field {
+            display: flex;
+            flex-direction: column;
+        }
+        .input-field label {
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        .input-field input, .input-field select {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border 0.3s;
+        }
+        .input-field input:focus, .input-field select:focus {
+            outline: none;
+            border-color: #0cd481;
+        }
+        table {
+            width: 100%;
+            display: block;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        thead {
+            background: linear-gradient(185deg,rgba(185, 232, 16, 1) 30%, rgba(9, 108, 121, 1) 100%);
+            color: white;
+        }
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+        .index-cell {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 16px;
+        }
+        tr:hover {
+            background: #f8f9ff;
+        }
+        .delete-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .delete-btn:hover {
+            background: #ee5a6f;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .summary-card {
+            background: linear-gradient(185deg,rgba(185, 232, 16, 1) 30%, rgba(9, 108, 121, 1) 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+        }
+        .summary-card.material {
+            background-color: #575707;
+        }
+        .summary-card h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+        .summary-card .number {
+            font-size: 36px;
+            font-weight: bold;
+        }
+        .detail-table {
+            margin-top: 10px;
+        }
+        .detail-table td {
+            background: rgba(255,255,255,0.1);
+            color: black;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        .empty-state p {
+            font-size: 16px;
+        }
+        @media (max-width: 480px){
+            .input-group{
+                grid-template-columns: 1fr !important;
+            }
+            .header h1 {
+                font-size: 20px;
+            }
+            .header p {
+                font-size: 12px;
+            }
+            td, th {
+                font-size: 12px;
+                padding: 8px;
+            }
+            .summary-card{
+                padding: 15px !important;
+            }
+            .summary-card .number{
+                font-size: 26px;
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+</head>
+<body>
+    <div class="save-indicator" id="saveIndicator">✅ Data tersimpan otomatis</div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>Data Entry Truck - RIT Harian</h1>
+            <p>Input data dan lihat summary otomatis per INDEX dan MATERIAL </p>
+        </div>
+        
+        <div class="content">
+            <!-- Input Form -->
+            <div class="section">
+                <div class="section-title">
+                    <span> Input Data Baru</span>
+                </div>
+                <div class="input-group">
+                    <div class="input-field">
+                        <label>Tanggal</label>
+                        <input type="date" id="tanggal">
+                    </div>
+                    <div class="input-field">
+                        <label>Jam</label>
+                        <input type="time" id="jam">
+                    </div>
+                    <div class="input-field">
+                        <label>Nopol Truck</label>
+                        <input type="text" id="nopol" placeholder="B 1234 ABC">
+                    </div>
+                    <div class="input-field">
+                        <label>Material</label>
+                        <select id="material">
+                            <option value="">Pilih Material</option>
+                            <option value="BATU 1-2">BATU 1-2</option>
+                            <option value="BATU 2-5">BATU 2-5</option>
+                            <option value="BATU 3-5">BATU 3-5</option>
+                            <option value="BATU 5-20 (BARANGKAL)">BATU 5-20 (BARANGKAL)</option>
+                            <option value="TANAH BATU">TANAH BATU</option>
+                            <option value="SPLIT">SPLIT</option>
+                            <option value="BASE COURSE A">BASE COURSE A</option>
+                            <option value="BASE COURSE B">BASE COURSE B</option>
+                            <option value="BASE COURSE C">BASE COURSE C</option>
+                            <option value="PASIR BATU">PASIR BATU (SIRDAM)</option>
+                            <option value="ABU BATU">ABU BATU</option>
+                            <option value="BOLDER">BOLDER</option>
+                        </select>
+                    </div>
+                    <div class="input-field">
+                        <label>Index</label>
+                        <input type="number" id="index" placeholder="8, 24, dst">
+                    </div>
+                </div>
+                <button class="btn" onclick="addData()"> Tambah Data</button>
+                <button class="btn" onclick="exportToXLSX()"> Export ke EXCEL</button>
+
+            </div>
+
+            <!-- Data Table -->
+            <div class="section">
+                <div class="section-title">
+                    <span> Data RIT Hari Ini</span>
+                    <button class="btn-small" onclick="clearAllData()"> Hapus Semua data</data></button>
+                </div>
+                <div>
+                    <div id="dataTableContainer"></div>
+                </div>
+            </div>
+
+            <!-- Summary per Index -->
+            <div class="section">
+                <div class="section-title">
+                    <span> Summary per INDEX</span>
+                </div>
+                <div id="summaryIndexContainer"></div>
+            </div>
+
+            <!-- Summary per Material -->
+            <div class="section">
+                <div class="section-title">
+                    <span> Summary per MATERIAL</span>
+                </div>
+                <div id="summaryMaterialContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let dataEntries = [];
+        const STORAGE_KEY = 'truckDataEntries';
+
+        // Load data dari localStorage pas halaman dimuat
+        function loadData() {
+            const savedData = localStorage.getItem(STORAGE_KEY);
+            if (savedData) {
+                try {
+                    dataEntries = JSON.parse(savedData);
+                    console.log('Data berhasil dimuat:', dataEntries.length, 'entries');
+                } catch (e) {
+                    console.error('Error loading data:', e);
+                    dataEntries = [];
+                }
+            }
+        }
+
+       
+        function saveData() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(dataEntries));
+                showSaveIndicator();
+                console.log('Data tersimpan:', dataEntries.length, 'entries');
+            } catch (e) {
+                console.error('Error saving data:', e);
+                alert('❌ Gagal menyimpan data. Storage mungkin penuh.');
+            }
+        }
+
+        function showSaveIndicator() {
+            const indicator = document.getElementById('saveIndicator');
+            indicator.style.display = 'block';
+            setTimeout(() => {
+                indicator.style.display = 'none';
+            }, 2000);
+        }
+
+        document.getElementById('tanggal').valueAsDate = new Date();
+
+        function addData() {
+            const tanggal = document.getElementById('tanggal').value;
+            const jam = document.getElementById('jam').value;
+            const nopol = document.getElementById('nopol').value.trim().toUpperCase();
+            const material = document.getElementById('material').value;
+            const index = document.getElementById('index').value;
+
+            if (!tanggal || !jam || !nopol || !material || !index) {
+                alert('❌ Semua field harus diisi!');
+                return;
+            }
+
+            dataEntries.push({
+                tanggal,
+                jam,
+                nopol,
+                material,
+                index: parseInt(index)
+            });
+
+            saveData();
+
+            document.getElementById('jam').value = '';
+            document.getElementById('nopol').value = '';
+            document.getElementById('material').value = '';
+            document.getElementById('index').value = '';
+
+            updateDisplay();
+        }
+
+        function deleteData(idx) {
+            if (confirm('Hapus data ini?')) {
+                dataEntries.splice(idx, 1);
+                saveData();
+                updateDisplay();
+            }
+        }
+
+        function clearAllData() {
+            if (confirm('⚠️ Hapus SEMUA data? Data yang sudah dihapus tidak bisa dikembalikan!')) {
+                dataEntries = [];
+                saveData();
+                updateDisplay();
+            }
+        }
+
+        function updateDisplay() {
+            updateDataTable();
+            updateSummaryIndex();
+            updateSummaryMaterial();
+        }
+
+        function updateDataTable() {
+            const container = document.getElementById('dataTableContainer');
+            
+            if (dataEntries.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>Tambahkan data!</p></div>';
+                return;
+            }
+
+            let html = '<table><thead><tr><th>No</th><th>Tanggal</th><th>Jam</th><th>Nopol</th><th>Material</th><th>Index</th><th>Aksi</th></tr></thead><tbody>';
+            
+            dataEntries.forEach((entry, idx) => {
+                html += `<tr>
+                    <td>${idx + 1}</td>
+                    <td>${entry.tanggal}</td>
+                    <td>${entry.jam}</td>
+                    <td>${entry.nopol}</td>
+                    <td>${entry.material}</td>
+                    <td class="index-cell">${entry.index}</td>
+                    <td><button class="delete-btn" onclick="deleteData(${idx})">Hapus</button></td>
+                </tr>`;
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        function updateSummaryIndex() {
+            const container = document.getElementById('summaryIndexContainer');
+            
+            if (dataEntries.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p> Summary akan muncul setelah ada data</p></div>';
+                return;
+            }
+
+            const summary = {};
+            
+            dataEntries.forEach(entry => {
+                if (!summary[entry.index]) {
+                    summary[entry.index] = {};
+                }
+                if (!summary[entry.index][entry.material]) {
+                    summary[entry.index][entry.material] = 0;
+                }
+                summary[entry.index][entry.material]++;
+            });
+
+            const sortedIndexes = Object.keys(summary).sort((a, b) => a - b);
+
+            let html = '<div class="summary-grid">';
+            
+            sortedIndexes.forEach(index => {
+                const materials = summary[index];
+                const totalRit = Object.values(materials).reduce((a, b) => a + b, 0);
+                
+                html += `<div class="summary-card">
+                    <h3><strong>INDEX ${index}</strong></h3>
+                    <div class="number">${totalRit} RIT</div>
+                    <table class="detail-table">
+                        <tbody>`;
+                
+                Object.entries(materials).forEach(([material, count]) => {
+                    html += `<tr><td>${material}</td><td style="text-align: right;">${count} rit</td></tr>`;
+                });
+                
+                html += `</tbody></table></div>`;
+            });
+
+            const grandTotal = dataEntries.length;
+            html += `<div class="summary-card">
+                <h3>TOTAL KESELURUHAN</h3>
+                <div class="number">${grandTotal} RIT</div>
+                <p style="margin-top: 10px; opacity: 0.9;">Dari semua index & material</p>
+            </div>`;
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function updateSummaryMaterial() {
+            const container = document.getElementById('summaryMaterialContainer');
+            
+            if (dataEntries.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p> Summary material akan muncul setelah ada data</p></div>';
+                return;
+            }
+
+            const materialSummary = {};
+            
+            dataEntries.forEach(entry => {
+                if (!materialSummary[entry.material]) {
+                    materialSummary[entry.material] = {};
+                }
+                if (!materialSummary[entry.material][entry.index]) {
+                    materialSummary[entry.material][entry.index] = 0;
+                }
+                materialSummary[entry.material][entry.index]++;
+            });
+
+            const sortedMaterials = Object.keys(materialSummary).sort();
+
+            let html = '<div class="summary-grid">';
+            
+            sortedMaterials.forEach(material => {
+                const indexes = materialSummary[material];
+                const totalRit = Object.values(indexes).reduce((a, b) => a + b, 0);
+
+                const indexList = Object.keys(indexes).sort((a, b) => a - b).join(', ');
+                
+                html += `<div class="summary-card material">
+                    <h3>${material}</h3>
+                    <p style="font-size: 18px; margin: 10px 0; opacity: 0.95;"><strong>INDEX: ${indexList}</strong></p>
+                    <div class="number">${totalRit} RIT</div>
+                    <table class="detail-table">
+                        <tbody>`;
+                
+                Object.keys(indexes).sort((a, b) => a - b).forEach(index => {
+                    const count = indexes[index];
+                    html += `<tr><td><strong>Index ${index}</strong></td><td style="text-align: right;">${count} rit</td></tr>`;
+                });
+                
+                html += `</tbody></table></div>`;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        loadData();
+        updateDisplay();
+        
+        function exportToXLSX() {
+    if (dataEntries.length === 0) {
+        alert("❌ Tidak ada data untuk di-export!");
+        return;
+    }
+
+    const wb = XLSX.utils.book_new();
+
+    // 1) RIT DATA — ubah tanggal jadi Date object
+    const ritSheetData = [
+        ["No", "Tanggal", "Jam", "Nopol", "Material", "Index"]
+    ];
+
+    dataEntries.forEach((d, i) => {
+        // Convert tanggal string "YYYY-MM-DD" jadi Date object
+        // Jika d.tanggal kosong atau invalid, fallback ke string asal
+        let tval = d.tanggal;
+        let dateObj = null;
+        if (tval) {
+            // new Date(tval) menghasilkan UTC midnight — ini cukup untuk Excel
+            const tmp = new Date(tval);
+            if (!isNaN(tmp)) dateObj = tmp;
+        }
+
+        ritSheetData.push([
+            i + 1,
+            dateObj !== null ? dateObj : tval,
+            d.jam,
+            d.nopol,
+            d.material,
+            d.index
+        ]);
+    });
+
+    // Buat sheet dari array-of-arrays; beri opsi cellDates agar XLSX traktir Date object
+    const ritSheet = XLSX.utils.aoa_to_sheet(ritSheetData, {cellDates: true});
+    XLSX.utils.book_append_sheet(wb, ritSheet, "RIT DATA");
+
+    // 2) SUMMARY INDEX
+    const summaryIndex = {};
+    dataEntries.forEach(e => {
+        if (!summaryIndex[e.index]) summaryIndex[e.index] = {};
+        if (!summaryIndex[e.index][e.material]) summaryIndex[e.index][e.material] = 0;
+        summaryIndex[e.index][e.material]++;
+    });
+
+    const summaryIndexSheet = [["Index", "Material", "Jumlah RIT"]];
+    Object.keys(summaryIndex).sort((a, b) => a - b).forEach(index => {
+        Object.entries(summaryIndex[index]).forEach(([material, count]) => {
+            summaryIndexSheet.push([index, material, count]);
+        });
+    });
+    const sheetIndex = XLSX.utils.aoa_to_sheet(summaryIndexSheet);
+    XLSX.utils.book_append_sheet(wb, sheetIndex, "SUMMARY INDEX");
+
+    // 3) SUMMARY MATERIAL
+    const summaryMaterial = {};
+    dataEntries.forEach(e => {
+        if (!summaryMaterial[e.material]) summaryMaterial[e.material] = {};
+        if (!summaryMaterial[e.material][e.index]) summaryMaterial[e.material][e.index] = 0;
+        summaryMaterial[e.material][e.index]++;
+    });
+
+    const summaryMaterialSheet = [["Material", "Index", "Jumlah RIT"]];
+    Object.keys(summaryMaterial).sort().forEach(material => {
+        Object.entries(summaryMaterial[material]).forEach(([index, count]) => {
+            summaryMaterialSheet.push([material, index, count]);
+        });
+    });
+    const sheetMaterial = XLSX.utils.aoa_to_sheet(summaryMaterialSheet);
+    XLSX.utils.book_append_sheet(wb, sheetMaterial, "SUMMARY MATERIAL");
+
+    // === WRITE + SAVE using Blob + FileSaver (menghindari .bin pada WebView) ===
+    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([wbout], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    });
+    saveAs(blob, "DATA_RIT.xlsx");
+}
+
+    
+
+    </script>
+</body>
+
+</html>
