@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catatan Kas Harian Toko</title>
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --card: #1a1a1a;
+            --primary: #2d6a4f;
+            --primary-light: #40916c;
+            --accent: #e9c46a;
+            --danger: #e76f51;
+            --text: #e0e0e0;
+            --text-light: #b0b0b0;
+            --border: #333333;
+            --shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+            --radius: 14px;
+            --radius-sm: 8px;
+            --transition: 0.2s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 16px;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Header */
+        .header {
+            background: var(--primary);
+            color: #fff;
+            padding: 18px 20px;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            box-shadow: 0 4px 16px rgba(45, 106, 79, 0.3);
+        }
+        .header h1 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+        .date-nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 30px;
+            padding: 6px 14px;
+        }
+        .date-nav button {
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 2px 6px;
+            border-radius: 50%;
+            transition: var(--transition);
+            line-height: 1;
+        }
+        .date-nav button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .date-nav input[type="date"] {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 4px 0;
+            font-family: inherit;
+            max-width: 140px;
+            text-align: center;
+        }
+        .date-nav input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 18px 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+        .card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text);
+        }
+        .card-title .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .dot.green {
+            background: #2d6a4f;
+        }
+        .dot.orange {
+            background: #e9c46a;
+        }
+        .dot.red {
+            background: #e76f51;
+        }
+
+        /* Shift rows */
+        .shift-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .shift-box {
+            flex: 1;
+            min-width: 180px;
+            background: #252525;
+            border-radius: var(--radius-sm);
+            padding: 14px;
+            border: 2px dashed var(--border);
+            transition: var(--transition);
+        }
+        .shift-box.filled {
+            border-color: var(--primary-light);
+            border-style: solid;
+            background: #1e2a24;
+        }
+        .shift-box label {
+            display: block;
+            font-weight: 700;
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .shift-box input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: inherit;
+            transition: var(--transition);
+            background: #2a2a2a;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+        .shift-box input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.2);
+        }
+        .shift-box .amount-display {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary-light);
+            word-break: break-all;
+            margin-bottom: 8px;
+        }
+        .shift-box .operator-input input {
+            margin-bottom: 0;
+        }
+
+        /* Cash Out */
+        .cashout-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 10px;
+            max-height: 320px;
+            overflow-y: auto;
+        }
+        .cashout-item {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap;
+            background: #252525;
+            padding: 8px 10px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            animation: fadeIn 0.25s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .cashout-item input {
+            padding: 8px 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            transition: var(--transition);
+            background: #2a2a2a;
+            color: var(--text);
+        }
+        .cashout-item input:focus {
+            outline: none;
+            border-color: var(--danger);
+            box-shadow: 0 0 0 3px rgba(231, 111, 81, 0.2);
+        }
+        .cashout-item .desc {
+            flex: 3;
+            min-width: 110px;
+        }
+        .cashout-item .operator {
+            flex: 2;
+            min-width: 90px;
+        }
+        .cashout-item .amount {
+            flex: 1.5;
+            min-width: 90px;
+            font-weight: 600;
+        }
+        .btn-remove {
+            background: var(--danger);
+            color: #fff;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            font-weight: 700;
+            transition: var(--transition);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-remove:hover {
+            background: #c0392b;
+            transform: scale(1.05);
+        }
+        .btn-add {
+            background: transparent;
+            border: 2px dashed var(--danger);
+            color: var(--danger);
+            padding: 10px 16px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: var(--transition);
+            width: 100%;
+            font-family: inherit;
+        }
+        .btn-add:hover {
+            background: rgba(231, 111, 81, 0.1);
+            border-style: solid;
+        }
+
+        /* Summary */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+        .summary-grid .item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px dotted var(--border);
+            font-weight: 500;
+        }
+        .summary-grid .total-row {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: space-between;
+            font-weight: 800;
+            font-size: 1.1rem;
+            padding: 10px 0;
+            color: var(--primary-light);
+            border-top: 2px solid var(--primary);
+            margin-top: 4px;
+        }
+
+        /* Buttons */
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            flex: 1;
+            min-width: 100px;
+            padding: 12px 18px;
+            border: none;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: inherit;
+            letter-spacing: 0.2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: #2a2a2a;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+        .btn:hover {
+            background: #383838;
+            transform: translateY(-1px);
+        }
+        .btn-save {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            box-shadow: 0 4px 12px rgba(45, 106, 79, 0.3);
+        }
+        .btn-save:hover { background: #1b4332; }
+        .btn-delete {
+            background: transparent;
+            color: var(--danger);
+            border: 2px solid var(--danger);
+        }
+        .btn-delete:hover { background: rgba(231, 111, 81, 0.15); }
+        .btn-history {
+            background: transparent;
+            border: 2px solid var(--primary-light);
+            color: var(--primary-light);
+        }
+        .btn-history:hover { background: rgba(64, 145, 108, 0.15); }
+        .btn-export {
+            background: transparent;
+            border: 2px solid var(--accent);
+            color: var(--accent);
+        }
+        .btn-export:hover { background: rgba(233, 196, 106, 0.15); }
+
+        /* History Table */
+        .table-wrapper {
+            overflow-x: auto;
+            margin-top: 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            min-width: 700px;
+        }
+        th {
+            background: #252525;
+            color: var(--text-light);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 10px 8px;
+            text-align: left;
+            border-bottom: 2px solid var(--border);
+            position: sticky;
+            top: 0;
+        }
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #2a2a2a;
+            vertical-align: middle;
+        }
+        tr:hover td {
+            background: #1e1e1e;
+        }
+        .badge {
+            display: inline-block;
+            background: #333;
+            color: #ccc;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            margin-left: 4px;
+        }
+        .btn-edit-row, .btn-del-row {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-light);
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-right: 4px;
+            transition: var(--transition);
+        }
+        .btn-edit-row:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+        .btn-del-row:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
+        .net-positive { color: #2d6a4f; font-weight: 700; }
+        .net-negative { color: #e76f51; font-weight: 700; }
+
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 10px;
+            margin-top: 14px;
+            font-size: 0.85rem;
+        }
+        .analysis-item {
+            background: #252525;
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            text-align: center;
+        }
+        .analysis-item .label {
+            color: var(--text-light);
+            margin-bottom: 4px;
+        }
+        .analysis-item .value {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--text);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #e0e0e0;
+            color: #0a0a0a;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            z-index: 200;
+            animation: slideUp 0.3s ease, fadeOut 0.3s ease 2s forwards;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+        @keyframes slideUp {
+            from { transform: translateX(-50%) translateY(40px); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+        @keyframes fadeOut {
+            to { opacity: 0; transform: translateX(-50%) translateY(20px); }
+        }
+
+        /* Responsive */
+        @media (max-width: 500px) {
+            .header h1 { font-size: 1.1rem; }
+            .card { padding: 14px; }
+            .shift-row { flex-direction: column; }
+            .cashout-item { flex-direction: column; align-items: stretch; }
+            .btn { font-size: 0.85rem; padding: 10px 14px; }
+        }
+        @media print {
+            body { background: #fff; color: #000; }
+            .card { background: #fff; border: 1px solid #ccc; }
+            .btn, .btn-add, .btn-remove, .date-nav button, .header .date-nav { display: none !important; }
+            input, select { border: 1px solid #ccc; background: #fff; color: #000; }
+            .shift-box { background: #f9f9f9; }
+            .analysis-item { background: #eee; }
+            table { color: #000; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Kas Harian Toko</h1>
+            <div class="date-nav">
+                <button onclick="changeDate(-1)" title="Hari sebelumnya">&#9664;</button>
+                <input type="date" id="datePicker" onchange="onDatePickerChange()">
+                <button onclick="changeDate(1)" title="Hari berikutnya">&#9654;</button>
+                <button onclick="goToToday()" title="Hari ini" style="font-size:0.85rem;padding:4px 10px;border-radius:20px;">Hari Ini</button>
+            </div>
+        </div>
+
+        <!-- Cash In - Shift -->
+        <div class="card" id="cashInCard">
+            <div class="card-title"><span class="dot green"></span> Cash In (Uang Masuk)</div>
+            <div class="shift-row">
+                <div class="shift-box" id="shiftPagiSore">
+                    <label>Pagi - Sore</label>
+                    <input type="number" id="cashInPagiSore" placeholder="Rp 0" oninput="updateShiftDisplay('pagiSore')" onchange="autoSaveDraft()">
+                    <div class="amount-display" id="displayPagiSore">Rp 0</div>
+                    <div class="operator-input">
+                        <input type="text" id="operatorPagiSore" placeholder="Operator" oninput="autoSaveDraft()">
+                    </div>
+                </div>
+                <div class="shift-box" id="shiftSorePagi">
+                    <label>Sore - Pagi</label>
+                    <input type="number" id="cashInSorePagi" placeholder="Rp 0" oninput="updateShiftDisplay('sorePagi')" onchange="autoSaveDraft()">
+                    <div class="amount-display" id="displaySorePagi">Rp 0</div>
+                    <div class="operator-input">
+                        <input type="text" id="operatorSorePagi" placeholder="Operator" oninput="autoSaveDraft()">
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top:10px;font-weight:700;text-align:right;font-size:1.1rem;color:var(--primary-light);">
+                Total Cash In: <span id="totalCashIn">Rp 0</span>
+            </div>
+        </div>
+
+        <!-- Cash Out -->
+        <div class="card" id="cashOutCard">
+            <div class="card-title"><span class="dot red"></span> Cash Out (Uang Keluar)</div>
+            <div class="cashout-list" id="cashOutList"></div>
+            <button class="btn-add" onclick="addCashOutItem()">+ Tambah Pengeluaran</button>
+            <div style="margin-top:10px;font-weight:700;text-align:right;font-size:1.1rem;color:var(--danger);">
+                Total Cash Out: <span id="totalCashOut">Rp 0</span>
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="card" id="summaryCard">
+            <div class="card-title"><span class="dot orange"></span> Ringkasan Harian</div>
+            <div class="summary-grid">
+                <div class="item"><span>Total Cash In</span><span id="sumCashIn">Rp 0</span></div>
+                <div class="item"><span>Total Cash Out</span><span id="sumCashOut">Rp 0</span></div>
+                <div class="total-row"><span>Saldo Bersih</span><span id="netBalance">Rp 0</span></div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="btn-row">
+            <button class="btn btn-save" onclick="saveRecord()">Simpan Catatan</button>
+            <button class="btn btn-delete" onclick="deleteRecord()">Hapus Hari Ini</button>
+            <button class="btn btn-history" onclick="document.getElementById('historyTableCard').scrollIntoView({behavior:'smooth'})">Lihat Riwayat</button>
+            <button class="btn btn-export" onclick="exportToExcel()">Ekspor ke Excel</button>
+        </div>
+
+        <!-- History Table Card -->
+        <div class="card" id="historyTableCard">
+            <div class="card-title" style="justify-content:space-between;">
+                <span>Tabel Riwayat & Analisis</span>
+                <button class="btn-export" onclick="exportToExcel()" style="padding:6px 12px;font-size:0.8rem;">Ekspor XLSX</button>
+            </div>
+            <div class="table-wrapper">
+                <table id="historyTable">
+                    <thead>
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Cash In Pagi (Operator)</th>
+                            <th>Cash In Sore (Operator)</th>
+                            <th>Total In</th>
+                            <th>Total Out</th>
+                            <th>Saldo</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody"></tbody>
+                </table>
+            </div>
+            <div id="analysisContainer" class="analysis-grid"></div>
+        </div>
+    </div>
+
+    <!-- Toast container -->
+    <div id="toastContainer"></div>
+
+    <!-- SheetJS Library -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <script>
+        const STORAGE_KEY = 'kas_harian_toko_data';
+        const DRAFT_KEY = 'kas_harian_toko_draft';
+
+        function formatRupiah(num) {
+            const n = parseInt(num) || 0;
+            if (n < 0) return 'Rp -' + Math.abs(n).toLocaleString('id-ID');
+            if (n === 0) return 'Rp 0';
+            return 'Rp ' + n.toLocaleString('id-ID');
+        }
+
+        function getAllData() {
+            try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch (e) { return {}; }
+        }
+        function saveAllData(data) { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+
+        function getRecord(dateStr) { return getAllData()[dateStr] || null; }
+        function setRecord(dateStr, record) {
+            const data = getAllData();
+            data[dateStr] = record;
+            saveAllData(data);
+        }
+        function removeRecord(dateStr) {
+            const data = getAllData();
+            delete data[dateStr];
+            saveAllData(data);
+        }
+
+        function saveDraft(dateStr, draft) {
+            try {
+                const drafts = JSON.parse(localStorage.getItem(DRAFT_KEY)) || {};
+                drafts[dateStr] = draft;
+                localStorage.setItem(DRAFT_KEY, JSON.stringify(drafts));
+            } catch (e) {}
+        }
+        function getDraft(dateStr) {
+            try { return (JSON.parse(localStorage.getItem(DRAFT_KEY)) || {})[dateStr] || null; } catch (e) { return null; }
+        }
+        function clearDraft(dateStr) {
+            try {
+                const drafts = JSON.parse(localStorage.getItem(DRAFT_KEY)) || {};
+                delete drafts[dateStr];
+                localStorage.setItem(DRAFT_KEY, JSON.stringify(drafts));
+            } catch (e) {}
+        }
+
+        let currentDate = new Date().toISOString().split('T')[0];
+        let cashOutItems = []; // {id, desc, operator, amount}
+
+        function getDateStr() { return currentDate; }
+
+        // Fungsi untuk sinkronisasi dari input date
+        function onDatePickerChange() {
+            const picker = document.getElementById('datePicker');
+            if (!picker.value) return;
+            currentDate = picker.value;
+            loadByDate();
+        }
+
+        function setDatePicker(dateStr) {
+            document.getElementById('datePicker').value = dateStr;
+            currentDate = dateStr;
+        }
+
+        function changeDate(delta) {
+            const d = new Date(currentDate + 'T00:00:00');
+            d.setDate(d.getDate() + delta);
+            const newDate = d.toISOString().split('T')[0];
+            setDatePicker(newDate);
+            loadByDate();
+        }
+
+        function goToToday() {
+            const today = new Date().toISOString().split('T')[0];
+            setDatePicker(today);
+            loadByDate();
+        }
+
+        function updateShiftDisplay(shift) {
+            const input = document.getElementById(shift === 'pagiSore' ? 'cashInPagiSore' : 'cashInSorePagi');
+            const display = document.getElementById(shift === 'pagiSore' ? 'displayPagiSore' : 'displaySorePagi');
+            const val = parseInt(input.value) || 0;
+            display.textContent = formatRupiah(val);
+            const box = document.getElementById(shift === 'pagiSore' ? 'shiftPagiSore' : 'shiftSorePagi');
+            box.classList.toggle('filled', val > 0);
+            updateTotals();
+            autoSaveDraft();
+        }
+
+        function updateTotals() {
+            const in1 = parseInt(document.getElementById('cashInPagiSore').value) || 0;
+            const in2 = parseInt(document.getElementById('cashInSorePagi').value) || 0;
+            const totalIn = in1 + in2;
+            document.getElementById('totalCashIn').textContent = formatRupiah(totalIn);
+            document.getElementById('sumCashIn').textContent = formatRupiah(totalIn);
+
+            let totalOut = 0;
+            cashOutItems.forEach(item => totalOut += parseInt(item.amount) || 0);
+            document.getElementById('totalCashOut').textContent = formatRupiah(totalOut);
+            document.getElementById('sumCashOut').textContent = formatRupiah(totalOut);
+
+            const net = totalIn - totalOut;
+            const netEl = document.getElementById('netBalance');
+            netEl.textContent = formatRupiah(net);
+            netEl.style.color = net >= 0 ? 'var(--primary-light)' : 'var(--danger)';
+        }
+
+        function renderCashOutItems() {
+            const list = document.getElementById('cashOutList');
+            list.innerHTML = '';
+            cashOutItems.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'cashout-item';
+                div.innerHTML = `
+                    <input type="text" class="desc" placeholder="Keterangan" value="${escapeHtml(item.desc || '')}" onchange="updateCashOutItem(${index}, 'desc', this.value)" oninput="autoSaveDraft()">
+                    <input type="text" class="operator" placeholder="Operator" value="${escapeHtml(item.operator || '')}" onchange="updateCashOutItem(${index}, 'operator', this.value)" oninput="autoSaveDraft()">
+                    <input type="number" class="amount" placeholder="Jumlah (Rp)" value="${item.amount || ''}" onchange="updateCashOutItem(${index}, 'amount', this.value)" oninput="autoSaveDraft()">
+                    <button class="btn-remove" onclick="removeCashOutItem(${index})" title="Hapus">&times;</button>
+                `;
+                list.appendChild(div);
+            });
+            updateTotals();
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function addCashOutItem(desc = '', operator = '', amount = '') {
+            cashOutItems.push({
+                id: Date.now() + Math.random(),
+                desc: desc,
+                operator: operator,
+                amount: amount
+            });
+            renderCashOutItems();
+            autoSaveDraft();
+        }
+
+        function removeCashOutItem(index) {
+            cashOutItems.splice(index, 1);
+            renderCashOutItems();
+            autoSaveDraft();
+        }
+
+        function updateCashOutItem(index, field, value) {
+            cashOutItems[index][field] = value;
+            updateTotals();
+            autoSaveDraft();
+        }
+
+        function autoSaveDraft() {
+            const dateStr = getDateStr();
+            const draft = {
+                cashInPagiSore: document.getElementById('cashInPagiSore').value,
+                operatorPagiSore: document.getElementById('operatorPagiSore').value,
+                cashInSorePagi: document.getElementById('cashInSorePagi').value,
+                operatorSorePagi: document.getElementById('operatorSorePagi').value,
+                cashOutItems: cashOutItems.map(item => ({ desc: item.desc, operator: item.operator, amount: item.amount })),
+            };
+            saveDraft(dateStr, draft);
+        }
+
+        function loadByDate() {
+            const dateStr = getDateStr();
+            // Hanya sinkronisasi tampilan, tidak ubah datePicker lagi
+            const record = getRecord(dateStr);
+            const draft = getDraft(dateStr);
+
+            if (record) {
+                document.getElementById('cashInPagiSore').value = record.cashInPagiSore || '';
+                document.getElementById('operatorPagiSore').value = record.operatorPagiSore || '';
+                document.getElementById('cashInSorePagi').value = record.cashInSorePagi || '';
+                document.getElementById('operatorSorePagi').value = record.operatorSorePagi || '';
+                cashOutItems = (record.cashOutItems || []).map(item => ({
+                    id: Date.now() + Math.random(),
+                    desc: item.desc || '',
+                    operator: item.operator || '',
+                    amount: item.amount || ''
+                }));
+                updateShiftDisplay('pagiSore');
+                updateShiftDisplay('sorePagi');
+                renderCashOutItems();
+                clearDraft(dateStr);
+            } else if (draft) {
+                document.getElementById('cashInPagiSore').value = draft.cashInPagiSore || '';
+                document.getElementById('operatorPagiSore').value = draft.operatorPagiSore || '';
+                document.getElementById('cashInSorePagi').value = draft.cashInSorePagi || '';
+                document.getElementById('operatorSorePagi').value = draft.operatorSorePagi || '';
+                cashOutItems = (draft.cashOutItems || []).map(item => ({
+                    id: Date.now() + Math.random(),
+                    desc: item.desc || '',
+                    operator: item.operator || '',
+                    amount: item.amount || ''
+                }));
+                updateShiftDisplay('pagiSore');
+                updateShiftDisplay('sorePagi');
+                renderCashOutItems();
+            } else {
+                document.getElementById('cashInPagiSore').value = '';
+                document.getElementById('operatorPagiSore').value = '';
+                document.getElementById('cashInSorePagi').value = '';
+                document.getElementById('operatorSorePagi').value = '';
+                cashOutItems = [];
+                updateShiftDisplay('pagiSore');
+                updateShiftDisplay('sorePagi');
+                renderCashOutItems();
+            }
+            updateTotals();
+            renderHistoryTable();
+        }
+
+        function saveRecord() {
+            const dateStr = getDateStr();
+            const in1 = parseInt(document.getElementById('cashInPagiSore').value) || 0;
+            const in2 = parseInt(document.getElementById('cashInSorePagi').value) || 0;
+            const op1 = document.getElementById('operatorPagiSore').value.trim();
+            const op2 = document.getElementById('operatorSorePagi').value.trim();
+
+            if (in1 === 0 && in2 === 0 && cashOutItems.length === 0) {
+                showToast('Tidak ada data untuk disimpan.');
+                return;
+            }
+
+            const validCashOut = cashOutItems
+                .filter(item => item.desc.trim() !== '' || item.operator.trim() !== '' || (parseInt(item.amount) || 0) > 0)
+                .map(item => ({
+                    desc: item.desc.trim(),
+                    operator: item.operator.trim(),
+                    amount: parseInt(item.amount) || 0
+                }));
+
+            const record = {
+                cashInPagiSore: in1,
+                operatorPagiSore: op1,
+                cashInSorePagi: in2,
+                operatorSorePagi: op2,
+                cashOutItems: validCashOut,
+                savedAt: new Date().toISOString(),
+            };
+
+            setRecord(dateStr, record);
+            clearDraft(dateStr);
+            loadByDate();
+            showToast('Catatan berhasil disimpan!');
+        }
+
+        function deleteRecord() {
+            const dateStr = getDateStr();
+            if (!getRecord(dateStr) && !getDraft(dateStr)) {
+                showToast('Tidak ada catatan untuk tanggal ini.');
+                return;
+            }
+            if (confirm(`Yakin hapus catatan untuk tanggal ${formatDateID(dateStr)}?`)) {
+                removeRecord(dateStr);
+                clearDraft(dateStr);
+                loadByDate();
+                showToast('Catatan berhasil dihapus.');
+            }
+        }
+
+        function deleteRecordByDate(dateStr) {
+            if (confirm(`Hapus catatan tanggal ${formatDateID(dateStr)}?`)) {
+                removeRecord(dateStr);
+                if (currentDate === dateStr) {
+                    clearDraft(dateStr);
+                    loadByDate();
+                } else {
+                    loadByDate();
+                }
+                showToast(`Catatan ${formatDateID(dateStr)} dihapus.`);
+            }
+        }
+
+        function formatDateID(dateStr) {
+            const d = new Date(dateStr + 'T00:00:00');
+            return d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        }
+
+        function showToast(msg) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = msg;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 2500);
+        }
+
+        // === History Table & Analysis ===
+        function renderHistoryTable() {
+            const data = getAllData();
+            const dates = Object.keys(data).sort().reverse();
+            const tbody = document.getElementById('historyTableBody');
+            tbody.innerHTML = '';
+
+            if (dates.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:20px;">Belum ada catatan tersimpan.</td></tr>`;
+                document.getElementById('analysisContainer').innerHTML = '';
+                return;
+            }
+
+            dates.forEach(dateStr => {
+                const rec = data[dateStr];
+                const totalIn = (rec.cashInPagiSore || 0) + (rec.cashInSorePagi || 0);
+                const totalOut = (rec.cashOutItems || []).reduce((sum, item) => sum + (item.amount || 0), 0);
+                const net = totalIn - totalOut;
+                const netClass = net >= 0 ? 'net-positive' : 'net-negative';
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${formatDateID(dateStr)}</td>
+                    <td>${formatRupiah(rec.cashInPagiSore || 0)} ${rec.operatorPagiSore ? '<span class="badge">'+escapeHtml(rec.operatorPagiSore)+'</span>' : ''}</td>
+                    <td>${formatRupiah(rec.cashInSorePagi || 0)} ${rec.operatorSorePagi ? '<span class="badge">'+escapeHtml(rec.operatorSorePagi)+'</span>' : ''}</td>
+                    <td>${formatRupiah(totalIn)}</td>
+                    <td>${formatRupiah(totalOut)}</td>
+                    <td class="${netClass}">${formatRupiah(net)}</td>
+                    <td>
+                        <button class="btn-edit-row" onclick="editRecord('${dateStr}')">Edit</button>
+                        <button class="btn-del-row" onclick="deleteRecordByDate('${dateStr}')">Hapus</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            renderAnalysis(data);
+        }
+
+        function editRecord(dateStr) {
+            setDatePicker(dateStr);
+            loadByDate();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderAnalysis(data) {
+            const dates = Object.keys(data);
+            if (dates.length === 0) return;
+
+            let totalCashInAll = 0;
+            let totalCashOutAll = 0;
+            let count = dates.length;
+
+            dates.forEach(dateStr => {
+                const rec = data[dateStr];
+                totalCashInAll += (rec.cashInPagiSore || 0) + (rec.cashInSorePagi || 0);
+                totalCashOutAll += (rec.cashOutItems || []).reduce((sum, item) => sum + (item.amount || 0), 0);
+            });
+
+            const avgCashIn = totalCashInAll / count;
+            const avgCashOut = totalCashOutAll / count;
+            const netTotal = totalCashInAll - totalCashOutAll;
+            const avgNet = netTotal / count;
+
+            const container = document.getElementById('analysisContainer');
+            container.innerHTML = `
+                <div class="analysis-item">
+                    <div class="label">Total Cash In</div>
+                    <div class="value">${formatRupiah(totalCashInAll)}</div>
+                </div>
+                <div class="analysis-item">
+                    <div class="label">Total Cash Out</div>
+                    <div class="value">${formatRupiah(totalCashOutAll)}</div>
+                </div>
+                <div class="analysis-item">
+                    <div class="label">Saldo Keseluruhan</div>
+                    <div class="value" style="color:${netTotal>=0?'#2d6a4f':'#e76f51'}">${formatRupiah(netTotal)}</div>
+                </div>
+                <div class="analysis-item">
+                    <div class="label">Rata-rata In/Hari</div>
+                    <div class="value">${formatRupiah(avgCashIn)}</div>
+                </div>
+                <div class="analysis-item">
+                    <div class="label">Rata-rata Out/Hari</div>
+                    <div class="value">${formatRupiah(avgCashOut)}</div>
+                </div>
+                <div class="analysis-item">
+                    <div class="label">Rata-rata Saldo</div>
+                    <div class="value" style="color:${avgNet>=0?'#2d6a4f':'#e76f51'}">${formatRupiah(avgNet)}</div>
+                </div>
+            `;
+        }
+
+        // === Export to Excel ===
+        function exportToExcel() {
+            const data = getAllData();
+            const dates = Object.keys(data).sort();
+            if (dates.length === 0) {
+                showToast('Tidak ada data untuk diekspor.');
+                return;
+            }
+
+            const rows = [['Tanggal', 'Cash In Pagi', 'Operator Pagi', 'Cash In Sore', 'Operator Sore', 'Total Cash In', 'Total Cash Out', 'Saldo Bersih']];
+
+            dates.forEach(dateStr => {
+                const rec = data[dateStr];
+                const totalIn = (rec.cashInPagiSore || 0) + (rec.cashInSorePagi || 0);
+                const totalOut = (rec.cashOutItems || []).reduce((sum, item) => sum + (item.amount || 0), 0);
+                const net = totalIn - totalOut;
+                rows.push([
+                    formatDateID(dateStr),
+                    rec.cashInPagiSore || 0,
+                    rec.operatorPagiSore || '',
+                    rec.cashInSorePagi || 0,
+                    rec.operatorSorePagi || '',
+                    totalIn,
+                    totalOut,
+                    net
+                ]);
+            });
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+            XLSX.utils.book_append_sheet(wb, ws, "Riwayat Kas");
+            XLSX.writeFile(wb, "riwayat_kas_harian.xlsx");
+            showToast('File Excel berhasil diunduh.');
+        }
+
+        // Keyboard shortcut
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                saveRecord();
+            }
+        });
+
+        function init() {
+            setDatePicker(currentDate);
+            loadByDate();
+            renderHistoryTable();
+        }
+        init();
+    </script>
+</body>
+</html>
